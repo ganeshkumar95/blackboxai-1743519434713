@@ -275,9 +275,17 @@ if (document.getElementById('api-title')) {
 
     // Initialize when DOM is ready
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initTabs);
+        document.addEventListener('DOMContentLoaded', () => {
+            initTabs();
+            setupFormDataTypes();
+            setupDeleteButtons(document.getElementById('params-container'));
+            setupDeleteButtons(document.getElementById('headers-container'));
+        });
     } else {
         initTabs();
+        setupFormDataTypes();
+        setupDeleteButtons(document.getElementById('params-container'));
+        setupDeleteButtons(document.getElementById('headers-container'));
     }
 
 // Header Management Functions
@@ -312,6 +320,34 @@ function addHeaderRow() {
 // Initialize headers
 document.getElementById('add-header').addEventListener('click', addHeaderRow);
 addHeaderRow(); // Add first header row by default
+
+// Form Data Type Toggle
+function setupFormDataTypes() {
+  document.querySelectorAll('#form-data-container select').forEach(select => {
+    select.addEventListener('change', (e) => {
+      const row = e.target.closest('.grid');
+      const valueInput = row.querySelector('.value-input');
+      const fileInput = row.querySelector('.file-input');
+      
+      if (e.target.value === 'File') {
+        valueInput.classList.add('hidden');
+        fileInput.classList.remove('hidden');
+      } else {
+        valueInput.classList.remove('hidden');
+        fileInput.classList.add('hidden');
+      }
+    });
+  });
+}
+
+// Delete Row Handler
+function setupDeleteButtons(container) {
+  container.addEventListener('click', (e) => {
+    if (e.target.closest('.delete-btn')) {
+      e.target.closest('.grid').remove();
+    }
+  });
+}
 
 // Add Parameter Row
 document.getElementById('add-param').addEventListener('click', () => {
@@ -410,6 +446,39 @@ document.getElementById('add-param').addEventListener('click', () => {
             }
 
             showSuccess(`Request completed (${response.status} ${response.statusText})`);
+
+            // Test Generation
+            document.getElementById('generate-test-btn').addEventListener('click', () => {
+                const selectedStatus = document.getElementById('response-status').value;
+                const testResults = document.getElementById('test-results');
+                
+                // Status code test
+                testResults.querySelector('pre:nth-child(2)').textContent = 
+`pm.test("Status code is ${selectedStatus}", function() {
+    pm.response.to.have.status(${selectedStatus});
+});`;
+
+                // Response time test
+                testResults.querySelector('pre:nth-child(5)').textContent = 
+`pm.test("Response time is less than 500ms", function() {
+    pm.expect(pm.response.responseTime).to.be.below(500);
+});`;
+
+                // Schema validation
+                try {
+                    JSON.parse(responseData);
+                    testResults.querySelector('pre:nth-child(8)').textContent = 
+`pm.test("Response has valid JSON", function() {
+    pm.response.to.have.jsonBody();
+});`;
+                } catch {
+                    testResults.querySelector('pre:nth-child(8)').textContent = 
+`// Schema validation not available for non-JSON responses`;
+                }
+
+                // Show tests tab
+                document.querySelector('[data-tab="response-tests"]').click();
+            });
         } catch (error) {
             showError('Request failed: ' + error.message);
         } finally {
