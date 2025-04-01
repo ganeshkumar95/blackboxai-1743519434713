@@ -1,0 +1,20 @@
+{
+  "name": "qirush",
+  "version": "1.0.0",
+  "description": "Qirush API Testing Tool",
+  "main": "scripts.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx tailwindcss -i ./styles.css -o ./dist/styles.css --watch",
+    "build": "npx tailwindcss -i ./styles.css -o ./dist/styles.css --minify",
+    "start": "python3 -m http.server 8000"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "10.4.17",
+    "postcss": "8.4.35",
+    "tailwindcss": "3.4.1"
+  }
+}
